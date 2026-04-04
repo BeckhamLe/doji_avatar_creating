@@ -81,7 +81,7 @@ export function QuizCard({ label, sublabel, hasImage, image, imagePosition, isIm
           overflow: 'hidden',
           cursor: 'pointer',
           padding: 0,
-          background: '#1a1a1a',
+          background: '#e8e8e8',
           display: 'flex',
         }}
         animate={{
@@ -144,7 +144,7 @@ export function QuizCard({ label, sublabel, hasImage, image, imagePosition, isIm
           overflow: 'hidden',
           cursor: 'pointer',
           padding: 0,
-          background: '#1a1a1a',
+          background: '#e8e8e8',
           flex: 1,
           minHeight: 0,
           display: 'flex',

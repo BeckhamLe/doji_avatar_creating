@@ -154,48 +154,49 @@ export function LoadingScreen({
         }}
       >
         <div className="w-9 h-1 bg-[#d4d4d4] rounded-[2px]" />
-        {avatarReady ? (
-          <>
-            <p className="text-[13px] text-text-secondary text-center leading-relaxed mb-0.5">
-              Your likeness is ready.
-            </p>
+        <p className="text-[13px] text-text-secondary text-center leading-relaxed mb-0.5">
+          {avatarReady
+            ? 'Your likeness is ready.'
+            : <>In the meantime, discover your style or explore looks.<br />We'll let you know when it's ready.</>
+          }
+        </p>
+        <div className="flex flex-col gap-3 w-full">
+          {avatarReady && (
             <motion.button
               onClick={onReveal}
-              style={{ height: 46, padding: '0 28px', borderRadius: 23 }}
-              className="flex items-center justify-center text-sm font-semibold font-serif bg-text-primary text-white cursor-pointer border-none"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+              className="w-full h-[52px] rounded-[26px] flex items-center justify-center text-sm font-semibold font-serif bg-text-primary text-white cursor-pointer border-none"
               whileTap={{ scale: 0.97 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
             >
               Reveal Your Avatar
             </motion.button>
-          </>
-        ) : (
-          <>
-            <p className="text-[13px] text-text-secondary text-center leading-relaxed mb-0.5">
-              In the meantime, discover your style or explore looks.
-              <br />
-              We'll let you know when it's ready.
-            </p>
-            <div className="flex gap-3 w-full">
-              <motion.button
-                onClick={onDiscoverStyle}
-                className="flex-1 h-[52px] rounded-[26px] flex items-center justify-center text-sm font-semibold font-serif bg-text-primary text-white cursor-pointer border-none"
-                whileTap={{ scale: 0.97 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-              >
-                Discover Your Style
-              </motion.button>
-              <motion.button
-                onClick={onExploreLooks}
-                className="flex-1 h-[52px] rounded-[26px] flex items-center justify-center text-sm font-semibold font-serif bg-white text-text-primary border-[1.5px] border-[#d4d4d4] cursor-pointer"
-                whileTap={{ scale: 0.97 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-              >
-                Explore Looks
-              </motion.button>
-            </div>
-          </>
-        )}
+          )}
+          <div className="flex gap-3 w-full">
+            <motion.button
+              onClick={onDiscoverStyle}
+              className="flex-1 h-[52px] rounded-[26px] flex items-center justify-center text-sm font-semibold font-serif cursor-pointer"
+              style={{
+                background: avatarReady ? '#fff' : '#1a1a1a',
+                color: avatarReady ? '#1a1a1a' : '#fff',
+                border: avatarReady ? '1.5px solid #d4d4d4' : 'none',
+              }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+            >
+              Discover Your Style
+            </motion.button>
+            <motion.button
+              onClick={onExploreLooks}
+              className="flex-1 h-[52px] rounded-[26px] flex items-center justify-center text-sm font-semibold font-serif bg-white text-text-primary border-[1.5px] border-[#d4d4d4] cursor-pointer"
+              whileTap={{ scale: 0.97 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+            >
+              Explore Looks
+            </motion.button>
+          </div>
+        </div>
       </div>
     </div>
   );

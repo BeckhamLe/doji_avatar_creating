@@ -15,10 +15,10 @@ export const quizQuestions: QuizQuestion[] = [
     question: 'What catches your eye first?',
     layout: 'four-image-grid',
     options: [
-      { id: '2a', label: 'Bold silhouettes', sublabel: 'Oversized, dramatic shapes', hasImage: true, image: '/images/quiz/q2/bold_silhouette.png', imagePosition: '60% 30%' },
-      { id: '2b', label: 'Clean tailoring', sublabel: 'Sharp lines, perfect fit', hasImage: true, image: '/images/quiz/q2/clean_tailoring.png', imagePosition: '28% center' },
-      { id: '2c', label: 'Layered textures', sublabel: 'Depth and dimension', hasImage: true, image: '/images/quiz/q2/layered_textures.png', imagePosition: '75% 30%' },
-      { id: '2d', label: 'Technical details', sublabel: 'Functional, considered', hasImage: true, image: '/images/quiz/q2/technical.png', imagePosition: 'center 25%' },
+      { id: '2a', label: 'Bold silhouettes', sublabel: 'Oversized, dramatic shapes', hasImage: true, image: '/images/quiz/q2/bold_silhouette.jpg', imagePosition: '60% 30%' },
+      { id: '2b', label: 'Clean tailoring', sublabel: 'Sharp lines, perfect fit', hasImage: true, image: '/images/quiz/q2/clean_tailoring.jpg', imagePosition: '28% center' },
+      { id: '2c', label: 'Layered textures', sublabel: 'Depth and dimension', hasImage: true, image: '/images/quiz/q2/layered_textures.jpg', imagePosition: '75% 30%' },
+      { id: '2d', label: 'Technical details', sublabel: 'Functional, considered', hasImage: true, image: '/images/quiz/q2/technical.jpg', imagePosition: 'center 25%' },
     ],
   },
   {
@@ -26,10 +26,10 @@ export const quizQuestions: QuizQuestion[] = [
     question: 'Pick a mood.',
     layout: 'four-image',
     options: [
-      { id: '3a', label: 'Dark and moody', sublabel: 'Shadows and mystery', hasImage: true, image: '/images/quiz/q3/dark_moody.png' },
-      { id: '3b', label: 'Quiet and composed', sublabel: 'Restrained elegance', hasImage: true, image: '/images/quiz/q3/quiet_composed.png' },
-      { id: '3c', label: 'Loud and expressive', sublabel: 'Unapologetic energy', hasImage: true, image: '/images/quiz/q3/loud_expressive.png' },
-      { id: '3d', label: 'Handmade and warm', sublabel: 'Craft and soul', hasImage: true, image: '/images/quiz/q3/handcraft_warm.png', imagePosition: 'center 20%' },
+      { id: '3a', label: 'Dark and moody', sublabel: 'Shadows and mystery', hasImage: true, image: '/images/quiz/q3/dark_moody.jpg' },
+      { id: '3b', label: 'Quiet and composed', sublabel: 'Restrained elegance', hasImage: true, image: '/images/quiz/q3/quiet_composed.jpg' },
+      { id: '3c', label: 'Loud and expressive', sublabel: 'Unapologetic energy', hasImage: true, image: '/images/quiz/q3/loud_expressive.jpg' },
+      { id: '3d', label: 'Handmade and warm', sublabel: 'Craft and soul', hasImage: true, image: '/images/quiz/q3/handcraft_warm.jpg', imagePosition: 'center 20%' },
     ],
   },
   {
@@ -37,10 +37,10 @@ export const quizQuestions: QuizQuestion[] = [
     question: 'Where do you feel most like yourself?',
     layout: 'four-image',
     options: [
-      { id: '4a', label: 'A gallery opening at night', hasImage: true, image: '/images/quiz/q4/gallery.png' },
-      { id: '4b', label: 'A minimalist apartment', hasImage: true, image: '/images/quiz/q4/apartment.png' },
-      { id: '4c', label: 'A vintage market in Tokyo', hasImage: true, image: '/images/quiz/q4/market.png' },
-      { id: '4d', label: 'A countryside studio', hasImage: true, image: '/images/quiz/q4/countryside.png' },
+      { id: '4a', label: 'A gallery opening at night', hasImage: true, image: '/images/quiz/q4/gallery.jpg' },
+      { id: '4b', label: 'A minimalist apartment', hasImage: true, image: '/images/quiz/q4/apartment.jpg' },
+      { id: '4c', label: 'A vintage market in Tokyo', hasImage: true, image: '/images/quiz/q4/market.jpg' },
+      { id: '4d', label: 'A countryside studio', hasImage: true, image: '/images/quiz/q4/countryside.jpg' },
     ],
   },
   {
@@ -59,10 +59,10 @@ export const quizQuestions: QuizQuestion[] = [
     question: 'Last one — trust your gut.',
     layout: 'four-image-only',
     options: [
-      { id: '6a', label: '', hasImage: true, image: '/images/quiz/q6/avant_garde.png' },
-      { id: '6b', label: '', hasImage: true, image: '/images/quiz/q6/minimalist.png' },
-      { id: '6c', label: '', hasImage: true, image: '/images/quiz/q6/streetwear.png' },
-      { id: '6d', label: '', hasImage: true, image: '/images/quiz/q6/romantic_craft.png' },
+      { id: '6a', label: '', hasImage: true, image: '/images/quiz/q6/avant_garde.jpg' },
+      { id: '6b', label: '', hasImage: true, image: '/images/quiz/q6/minimalist.jpg' },
+      { id: '6c', label: '', hasImage: true, image: '/images/quiz/q6/streetwear.jpg' },
+      { id: '6d', label: '', hasImage: true, image: '/images/quiz/q6/romantic_craft.jpg' },
     ],
   },
 ];
@@ -72,31 +72,31 @@ export const styleProfiles: Record<string, StyleProfile> = {
     name: 'The Deconstructionist',
     description: 'You see fashion as architecture — something to pull apart and rebuild. You\'re drawn to designers who challenge convention and find beauty in the undone.',
     brands: ['Rick Owens', 'Maison Margiela', 'Comme des Garcons'],
-    image: '/images/quiz/personas/deconstructionist.png',
+    image: '/images/quiz/personas/deconstructionist.jpg',
   },
   'minimalist': {
     name: 'The Purist',
     description: 'Less is everything. You believe in perfect cuts, premium fabrics, and the quiet confidence of restraint. Your wardrobe is edited, never cluttered.',
     brands: ['The Row', 'Acne Studios', 'Jil Sander'],
-    image: '/images/quiz/personas/purist.png',
+    image: '/images/quiz/personas/purist.jpg',
   },
   'streetwear': {
     name: 'The Remixer',
     description: 'You live at the intersection of high and low. Hype and heritage blend seamlessly in your world — everything is a reference, everything is fair game.',
     brands: ['Bape', 'Off-White', 'Palm Angels'],
-    image: '/images/quiz/personas/remixer.png',
+    image: '/images/quiz/personas/remixer.jpg',
   },
   'romantic': {
     name: 'The Storyteller',
     description: 'Every piece you own has a story. You\'re drawn to craft, texture, and the human hand behind the garment. Fashion is personal history made wearable.',
     brands: ['BODE', 'Simone Rocha', 'Dries Van Noten'],
-    image: '/images/quiz/personas/storyteller.png',
+    image: '/images/quiz/personas/storyteller.jpg',
   },
   'techwear': {
     name: 'The Functionalist',
     description: 'Form follows function, always. You appreciate technical fabrics, considered details, and garments that perform as well as they look.',
     brands: ['Post Archive Faction', 'And Wander', 'Stone Island'],
-    image: '/images/quiz/personas/functionalist.png',
+    image: '/images/quiz/personas/functionalist.jpg',
   },
 };
 

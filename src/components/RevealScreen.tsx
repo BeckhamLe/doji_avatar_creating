@@ -7,7 +7,7 @@ interface RevealScreenProps {
   onEnter?: () => void;
 }
 
-export function RevealScreen({ onClose: _, onEnter }: RevealScreenProps) {
+export function RevealScreen({ onClose, onEnter }: RevealScreenProps) {
   return (
     <motion.div
       style={{
@@ -24,6 +24,33 @@ export function RevealScreen({ onClose: _, onEnter }: RevealScreenProps) {
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.5, ease: EASE }}
     >
+      {/* Back button */}
+      <motion.button
+        onClick={onClose}
+        style={{
+          position: 'absolute',
+          top: 16,
+          left: 16,
+          zIndex: 10,
+          background: 'rgba(255,255,255,0.85)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          border: 'none',
+          borderRadius: '50%',
+          width: 36,
+          height: 36,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+        }}
+        whileTap={{ scale: 0.9 }}
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M15 18l-6-6 6-6" stroke="#1a1a1a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </motion.button>
 
       {/* Avatar image — fills the screen edge-to-edge */}
       <div

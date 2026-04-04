@@ -1,14 +1,14 @@
-import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo, lazy, Suspense } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { PhoneShell } from './components/PhoneShell';
 import { PicSelectionScreen } from './components/PicSelectionScreen';
 import { MergeTransition } from './components/MergeTransition';
 import type { ShapeSnapshot } from './components/MergeTransition';
 import { LoadingScreen } from './components/LoadingScreen';
-import { QuizScreen } from './components/QuizScreen';
-import { ExplorationScreen } from './components/ExplorationScreen';
-import { RevealScreen } from './components/RevealScreen';
-import { ProfileScreen } from './components/ProfileScreen';
+const QuizScreen = lazy(() => import('./components/QuizScreen').then(m => ({ default: m.QuizScreen })));
+const ExplorationScreen = lazy(() => import('./components/ExplorationScreen').then(m => ({ default: m.ExplorationScreen })));
+const RevealScreen = lazy(() => import('./components/RevealScreen').then(m => ({ default: m.RevealScreen })));
+const ProfileScreen = lazy(() => import('./components/ProfileScreen').then(m => ({ default: m.ProfileScreen })));
 import { useAvatarProgress } from './hooks/useAvatarProgress';
 import { useQuizState } from './hooks/useQuizState';
 import { useTryOnQueue } from './hooks/useTryOnQueue';
@@ -148,6 +148,7 @@ function App() {
       {/* Other overlay screens */}
       <AnimatePresence>
         {activeScreen === 'quiz' && (
+          <Suspense key="quiz-suspense" fallback={null}>
           <QuizScreen
             key="quiz"
             currentQuestion={quiz.currentQuestion}
@@ -162,9 +163,11 @@ function App() {
             onExplore={() => setActiveScreen('exploration')}
             onReset={quiz.resetQuiz}
           />
+          </Suspense>
         )}
 
         {activeScreen === 'exploration' && (
+          <Suspense key="exploration-suspense" fallback={null}>
           <ExplorationScreen
             key="exploration"
             shortlistCount={tryOn.count}
@@ -175,23 +178,28 @@ function App() {
             onToggleLike={liked.toggleLike}
             onExit={() => setActiveScreen('loading')}
           />
+          </Suspense>
         )}
 
         {activeScreen === 'reveal' && (
+          <Suspense key="reveal-suspense" fallback={null}>
           <RevealScreen
             key="reveal"
             onClose={() => setActiveScreen('loading')}
             onEnter={() => setActiveScreen('profile')}
           />
+          </Suspense>
         )}
         {activeScreen === 'profile' && (
+          <Suspense key="profile-suspense" fallback={null}>
           <ProfileScreen
             key="profile"
             queueCount={tryOn.count}
             queueItems={queueItems}
             onRemoveFromQueue={tryOn.toggleItem}
-            onBack={() => setActiveScreen('loading')}
+            onBack={() => setActiveScreen('reveal')}
           />
+          </Suspense>
         )}
       </AnimatePresence>
 
