@@ -247,10 +247,11 @@ export function ProfileScreen({ queueCount, queueItems, onRemoveFromQueue, onBac
         background: '#fff',
       }}>
         {/* Home — navigates back */}
-        <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="1.5">
+        <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="#1a1a1a" stroke="#1a1a1a" strokeWidth="1.5">
             <path d="M3 9.5L12 3L21 9.5V20C21 20.55 20.55 21 20 21H4C3.45 21 3 20.55 3 20V9.5Z" />
           </svg>
+          <span style={{ fontSize: 9, fontWeight: 600, color: '#1a1a1a', letterSpacing: '0.02em' }}>Home</span>
         </button>
         {/* Search */}
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="1.5">

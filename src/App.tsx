@@ -197,7 +197,7 @@ function App() {
             queueCount={tryOn.count}
             queueItems={queueItems}
             onRemoveFromQueue={tryOn.toggleItem}
-            onBack={() => setActiveScreen('reveal')}
+            onBack={() => setActiveScreen('loading')}
           />
           </Suspense>
         )}
