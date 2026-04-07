@@ -34,12 +34,13 @@ export function ExplorationScreen({
       initial={{ y: '100%' }}
       animate={{ y: 0 }}
       exit={{ y: '100%' }}
-      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+      transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+      style={{ touchAction: 'none' }}
       drag="y"
-      dragConstraints={{ top: 0, bottom: 0 }}
-      dragElastic={0.3}
+      dragConstraints={{ top: 0 }}
+      dragElastic={{ top: 0, bottom: 0.6 }}
       onDragEnd={(_e, info) => {
-        if (info.offset.y > 120 || info.velocity.y > 500) {
+        if (info.offset.y > 80 || info.velocity.y > 300) {
           onExit();
         }
       }}
@@ -119,7 +120,7 @@ export function ExplorationScreen({
                     overflow: 'hidden', display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
                   }}>
                     {cluster.outfit.image && (
-                      <img src={cluster.outfit.image} alt={cluster.outfit.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} />
+                      <img src={cluster.outfit.image} alt={cluster.outfit.name} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} />
                     )}
                   </div>
                   <p style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.7)', paddingLeft: 2 }}>
@@ -178,7 +179,7 @@ export function ExplorationScreen({
                         overflow: 'hidden', display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
                       }}>
                         {cluster.outfit.image ? (
-                          <img src={cluster.outfit.image} alt={cluster.outfit.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} />
+                          <img src={cluster.outfit.image} alt={cluster.outfit.name} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} />
                         ) : (
                           <span style={{ fontSize: 11, color: '#bbb' }}>Outfit</span>
                         )}
@@ -204,7 +205,7 @@ export function ExplorationScreen({
                             whileTap={{ scale: 0.97 }}
                           >
                             {product.image ? (
-                              <img src={product.image} alt={product.name} style={{ width: '90%', height: '90%', objectFit: 'contain' }} />
+                              <img src={product.image} alt={product.name} loading="lazy" style={{ width: '90%', height: '90%', objectFit: 'contain' }} />
                             ) : (
                               <span style={{ fontSize: 10, color: '#bbb' }}>Product</span>
                             )}
@@ -232,6 +233,7 @@ export function ExplorationScreen({
         {selectedItem && (
           <ProductDetailView
             key={selectedItem.id}
+            id={selectedItem.id}
             brand={selectedItem.brand}
             name={selectedItem.name}
             price={selectedItem.price}
@@ -240,9 +242,9 @@ export function ExplorationScreen({
             pieces={selectedItem.pieces?.map(p => ({ id: p.id, brand: p.brand, name: p.name, price: p.price, image: p.image, images: p.images }))}
             viewType={selectedItem.type}
             isInShortlist={isInShortlist(selectedItem.id)}
-            isLiked={isLiked(selectedItem.id)}
+            isLiked={isLiked}
             onToggleShortlist={() => onToggleItem(selectedItem.id)}
-            onToggleLike={() => onToggleLike(selectedItem.id)}
+            onToggleLike={onToggleLike}
             onClose={() => setSelectedItem(null)}
           />
         )}

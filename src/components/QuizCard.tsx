@@ -42,7 +42,7 @@ export function QuizCard({ label, sublabel, hasImage, image, imagePosition, isIm
         transition={{ type: 'spring', stiffness: 400, damping: 28 }}
       >
         {image ? (
-          <img src={image} alt={label || 'Style option'} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: imagePosition || 'center center' }} />
+          <img src={image} alt={label || 'Style option'} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: imagePosition || 'center center' }} loading="lazy" />
         ) : (
           <div style={{ width: '100%', height: '100%', background: '#e0e0e0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <span style={{ fontSize: '11px', color: '#999' }}>Image</span>
@@ -92,7 +92,7 @@ export function QuizCard({ label, sublabel, hasImage, image, imagePosition, isIm
         transition={{ type: 'spring', stiffness: 400, damping: 28 }}
       >
         {image ? (
-          <img src={image} alt={label} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: imagePosition || 'center center' }} />
+          <img src={image} alt={label} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: imagePosition || 'center center' }} loading="lazy" />
         ) : (
           <div style={{ width: '100%', height: '100%', background: '#e0e0e0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <span style={{ fontSize: '11px', color: '#bbb' }}>Image</span>
@@ -158,7 +158,7 @@ export function QuizCard({ label, sublabel, hasImage, image, imagePosition, isIm
         transition={{ type: 'spring', stiffness: 400, damping: 28 }}
       >
         {image ? (
-          <img src={image} alt={label} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: imagePosition || 'center center' }} />
+          <img src={image} alt={label} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: imagePosition || 'center center' }} loading="lazy" />
         ) : (
           <div style={{ flex: 1, background: '#e0e0e0', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 0 }}>
             <span style={{ fontSize: '11px', color: '#bbb' }}>Image</span>

@@ -24,14 +24,15 @@ interface ProductDetailProps {
   brand: string;
   name: string;
   price: string;
+  id: string;
   image?: string;
   images?: string[];
   pieces?: PieceData[];
   viewType?: 'outfit' | 'product';
   isInShortlist: boolean;
-  isLiked: boolean;
+  isLiked: (id: string) => boolean;
   onToggleShortlist: () => void;
-  onToggleLike: () => void;
+  onToggleLike: (id: string) => void;
   onClose: () => void;
 }
 
@@ -58,6 +59,7 @@ export function ProductDetailView({
   brand,
   name,
   price,
+  id,
   image,
   images,
   pieces,
@@ -125,7 +127,7 @@ export function ProductDetailView({
             onClick={(e) => e.stopPropagation()}
           >
             {focusCarouselImages[pieceImageIndex] ? (
-              <img src={focusCarouselImages[pieceImageIndex]} alt={activePieceForFocus.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              <img src={focusCarouselImages[pieceImageIndex]} alt={activePieceForFocus.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} loading="lazy" />
             ) : (
               <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <span style={{ fontSize: 12, color: '#bbb' }}>Product image</span>
@@ -183,7 +185,7 @@ export function ProductDetailView({
               style={{ margin: '0 20px', background: '#fff', borderRadius: 12, aspectRatio: '4/5', cursor: 'pointer', position: 'relative', overflow: 'hidden' }}
             >
               {carouselImages[pieceImageIndex] ? (
-                <img src={carouselImages[pieceImageIndex]} alt={selfPiece.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                <img src={carouselImages[pieceImageIndex]} alt={selfPiece.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} loading="lazy" />
               ) : (
                 <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <span style={{ fontSize: 12, color: '#bbb' }}>Product image</span>
@@ -204,8 +206,8 @@ export function ProductDetailView({
                 <p style={{ fontSize: 14, fontWeight: 500, color: '#1a1a1a', marginTop: 4 }}>{selfPiece.price}</p>
               </div>
               <div style={{ display: 'flex', gap: 16, paddingTop: 4 }}>
-                <motion.button onClick={onToggleLike} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }} whileTap={{ scale: 1.3 }} transition={{ type: 'spring', stiffness: 500, damping: 15 }}>
-                  <HeartIcon fill={isLiked ? '#e74c3c' : 'none'} stroke={isLiked ? '#e74c3c' : '#1a1a1a'} />
+                <motion.button onClick={() => onToggleLike(id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }} whileTap={{ scale: 1.3 }} transition={{ type: 'spring', stiffness: 500, damping: 15 }}>
+                  <HeartIcon fill={isLiked(id) ? '#e74c3c' : 'none'} stroke={isLiked(id) ? '#e74c3c' : '#1a1a1a'} />
                 </motion.button>
                 <ShareIcon />
               </div>
@@ -221,7 +223,7 @@ export function ProductDetailView({
                 {selfSimilarItems.map((item) => (
                   <div key={item.id} style={{ cursor: 'pointer' }}>
                     <div style={{ width: '100%', aspectRatio: '3/4', background: '#fff', borderRadius: 8, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {item.image ? <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: 10, color: '#bbb' }}>Image</span></div>}
+                      {item.image ? <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} loading="lazy" /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: 10, color: '#bbb' }}>Image</span></div>}
                     </div>
                     <p style={{ fontSize: 12, fontWeight: 500, color: '#1a1a1a', marginTop: 6 }}>{item.brand}</p>
                     <p style={{ fontSize: 11, color: '#999' }}>{item.name}</p>
@@ -269,13 +271,13 @@ export function ProductDetailView({
         {/* Outfit image */}
         <div onClick={() => setShowBreakdown(true)} style={{ flex: 1, margin: 0, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 0, position: 'relative', cursor: 'pointer', overflow: 'hidden' }}>
           {image ? (
-            <img src={image} alt={name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            <img src={image} alt={name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} loading="lazy" />
           ) : (
             <span style={{ fontSize: 12, color: '#bbb' }}>Full outfit on model</span>
           )}
           <div style={{ position: 'absolute', right: 16, bottom: 60, display: 'flex', flexDirection: 'column', gap: 16 }} onClick={e => e.stopPropagation()}>
-            <motion.button onClick={onToggleLike} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }} whileTap={{ scale: 1.3 }} transition={{ type: 'spring', stiffness: 500, damping: 15 }}>
-              <HeartIcon fill={isLiked ? '#e74c3c' : 'none'} stroke={isLiked ? '#e74c3c' : '#1a1a1a'} />
+            <motion.button onClick={() => onToggleLike(id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }} whileTap={{ scale: 1.3 }} transition={{ type: 'spring', stiffness: 500, damping: 15 }}>
+              <HeartIcon fill={isLiked(id) ? '#e74c3c' : 'none'} stroke={isLiked(id) ? '#e74c3c' : '#1a1a1a'} />
             </motion.button>
             <ShareIcon />
             <MoreDotsIcon />
@@ -300,10 +302,10 @@ export function ProductDetailView({
           {showBreakdown && (
             <motion.div
               initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              drag="y" dragConstraints={{ top: 0, bottom: 0 }} dragElastic={0.3}
+              transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+              drag="y" dragConstraints={{ top: 0, bottom: 0 }} dragElastic={0.15}
               onDragEnd={(_e: MouseEvent | TouchEvent | PointerEvent, info: { offset: { y: number }; velocity: { y: number } }) => {
-                if (info.offset.y > 60 || info.velocity.y > 300) setShowBreakdown(false);
+                if (info.offset.y > 40 || info.velocity.y > 200) setShowBreakdown(false);
               }}
               style={{ position: 'absolute', bottom: 0, left: 0, right: 0, borderRadius: '20px 20px 0 0', padding: '12px 0 0', background: '#fff', zIndex: 5, boxShadow: '0 -8px 30px rgba(0,0,0,0.12)' }}
             >
@@ -315,7 +317,7 @@ export function ProductDetailView({
                 {(pieces || []).map((piece) => (
                   <motion.button key={piece.id} onClick={() => { setShowBreakdown(false); setPieceImageIndex(0); setSelectedPiece(piece); }} style={{ flexShrink: 0, width: 120, border: 'none', padding: 0, background: 'transparent', cursor: 'pointer', textAlign: 'left' }} whileTap={{ scale: 0.95 }}>
                     <div style={{ width: 120, height: 140, background: '#fff', borderRadius: 8, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {piece.image ? <img src={piece.image} alt={piece.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: 10, color: '#bbb' }}>Piece</span></div>}
+                      {piece.image ? <img src={piece.image} alt={piece.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} loading="lazy" /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: 10, color: '#bbb' }}>Piece</span></div>}
                     </div>
                     <p style={{ fontSize: 12, fontWeight: 500, color: '#1a1a1a', marginTop: 6, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{piece.brand}</p>
                     <p style={{ fontSize: 11, color: '#999', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{piece.name}</p>
@@ -359,7 +361,7 @@ export function ProductDetailView({
                   style={{ margin: '0 20px', background: '#fff', borderRadius: 12, aspectRatio: '4/5', cursor: 'pointer', position: 'relative', overflow: 'hidden' }}
                 >
                   {pieceCarouselImages[pieceImageIndex] ? (
-                    <img src={pieceCarouselImages[pieceImageIndex]} alt={selectedPiece.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                    <img src={pieceCarouselImages[pieceImageIndex]} alt={selectedPiece.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} loading="lazy" />
                   ) : (
                     <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: 12, color: '#bbb' }}>Product image</span></div>
                   )}
@@ -378,8 +380,8 @@ export function ProductDetailView({
                     <p style={{ fontSize: 14, fontWeight: 500, color: '#1a1a1a', marginTop: 4 }}>{selectedPiece.price}</p>
                   </div>
                   <div style={{ display: 'flex', gap: 16, paddingTop: 4 }}>
-                    <motion.button onClick={onToggleLike} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }} whileTap={{ scale: 1.3 }} transition={{ type: 'spring', stiffness: 500, damping: 15 }}>
-                      <HeartIcon fill={isLiked ? '#e74c3c' : 'none'} stroke={isLiked ? '#e74c3c' : '#1a1a1a'} />
+                    <motion.button onClick={() => onToggleLike(selectedPiece.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }} whileTap={{ scale: 1.3 }} transition={{ type: 'spring', stiffness: 500, damping: 15 }}>
+                      <HeartIcon fill={isLiked(selectedPiece.id) ? '#e74c3c' : 'none'} stroke={isLiked(selectedPiece.id) ? '#e74c3c' : '#1a1a1a'} />
                     </motion.button>
                     <ShareIcon />
                   </div>
@@ -403,7 +405,7 @@ export function ProductDetailView({
                           whileTap={{ scale: 0.95 }}
                         >
                           <div style={{ width: 90, height: 100, background: '#fff', borderRadius: 8, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            {piece.image ? <img src={piece.image} alt={piece.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: 9, color: '#bbb' }}>Piece</span></div>}
+                            {piece.image ? <img src={piece.image} alt={piece.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} loading="lazy" /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: 9, color: '#bbb' }}>Piece</span></div>}
                           </div>
                           <p style={{ fontSize: 10, fontWeight: 500, color: '#1a1a1a', marginTop: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{piece.brand}</p>
                           <p style={{ fontSize: 9, color: '#999', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{piece.name}</p>
@@ -419,7 +421,7 @@ export function ProductDetailView({
                     {pieceSimilarItems.map((item) => (
                       <div key={item.id} style={{ cursor: 'pointer' }}>
                         <div style={{ width: '100%', aspectRatio: '3/4', background: '#fff', borderRadius: 8, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          {item.image ? <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: 10, color: '#bbb' }}>Image</span></div>}
+                          {item.image ? <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} loading="lazy" /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: 10, color: '#bbb' }}>Image</span></div>}
                         </div>
                         <p style={{ fontSize: 12, fontWeight: 500, color: '#1a1a1a', marginTop: 6 }}>{item.brand}</p>
                         <p style={{ fontSize: 11, color: '#999' }}>{item.name}</p>

@@ -83,7 +83,7 @@ export function PicSelectionScreen({ onCreateLikeness, isFading }: PicSelectionS
         initial={{ opacity: 0 }}
         animate={{ opacity: isFading ? 0 : 1 }}
         transition={isFading ? FADE_OUT : { delay: 0.1, duration: FADE_DUR, ease: EASE }}
-        style={{ width: 36, height: 5, background: "#d4d4d4", borderRadius: 3, marginTop: 14 }}
+        style={{ width: 36, height: 5, background: "#d4d4d4", borderRadius: 3, marginTop: 14, flexShrink: 0 }}
       />
 
       <motion.div
@@ -91,7 +91,7 @@ export function PicSelectionScreen({ onCreateLikeness, isFading }: PicSelectionS
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: isFading ? 0 : 1, y: 0 }}
         transition={isFading ? FADE_OUT : { delay: 0.18, duration: FADE_DUR, ease: EASE }}
-        style={{ padding: '12px 20px 0' }}
+        style={{ padding: '12px 20px 0', flexShrink: 0 }}
       >
         <button style={{ background: 'none', border: 'none', fontSize: 28, color: '#1a1a1a', cursor: 'pointer', lineHeight: 1 }}>
           &#8249;
@@ -119,6 +119,7 @@ export function PicSelectionScreen({ onCreateLikeness, isFading }: PicSelectionS
           color: '#1a1a1a',
           marginTop: 28,
           textAlign: 'center',
+          flexShrink: 0,
         }}
       >
         Review your images
@@ -135,14 +136,27 @@ export function PicSelectionScreen({ onCreateLikeness, isFading }: PicSelectionS
           marginTop: 10,
           lineHeight: 1.5,
           padding: '0 50px',
+          flexShrink: 0,
         }}
       >
         Give your images a final check before creating your likeness
       </motion.p>
 
-      <div style={{ marginTop: 28, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+      {/* Image area — flex-grows to fill available space, images scale proportionally */}
+      <div style={{
+        flex: 1,
+        minHeight: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 'clamp(6px, 1.5dvh, 12px)',
+        marginTop: 'clamp(12px, 3dvh, 28px)',
+        padding: '0 20px',
+      }}>
+        {/* Selfie rows */}
         {SELFIE_ROWS.map((row, rowIndex) => (
-          <div key={rowIndex} style={{ display: 'flex', justifyContent: 'center', gap: 18 }}>
+          <div key={rowIndex} style={{ display: 'flex', justifyContent: 'center', gap: 'clamp(10px, 2.5dvw, 18px)' }}>
             {row.map((img, j) => {
               const i = rowIndex * 3 + j;
               const delay = 0.42 + i * 0.06;
@@ -152,13 +166,17 @@ export function PicSelectionScreen({ onCreateLikeness, isFading }: PicSelectionS
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay, duration: FADE_DUR, ease: EASE }}
-                  style={{ position: 'relative', width: 95, height: 95 }}
+                  style={{
+                    position: 'relative',
+                    width: 'clamp(70px, 12dvh, 95px)',
+                    height: 'clamp(70px, 12dvh, 95px)',
+                  }}
                 >
                   <div
                     data-merge={i}
                     className="selfie-circle"
                     style={{
-                      width: 95, height: 95, borderRadius: '50%',
+                      width: '100%', height: '100%', borderRadius: '50%',
                       overflow: 'hidden', position: 'relative',
                       background: isFading ? '#080808' : '#e5e5e5',
                       transition: 'background 0.5s ease',
@@ -190,7 +208,8 @@ export function PicSelectionScreen({ onCreateLikeness, isFading }: PicSelectionS
           </div>
         ))}
 
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 18 }}>
+        {/* Body images */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 'clamp(10px, 2.5dvw, 18px)' }}>
           {bodyImages.map((img, i) => {
             const delay = 0.78 + i * 0.06;
             return (
@@ -199,13 +218,17 @@ export function PicSelectionScreen({ onCreateLikeness, isFading }: PicSelectionS
                 initial={{ opacity: 0, y: 14, scale: 0.92 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ delay, duration: FADE_DUR, ease: EASE }}
-                style={{ position: 'relative', width: 150, height: 200 }}
+                style={{
+                  position: 'relative',
+                  width: 'clamp(110px, 19dvh, 150px)',
+                  height: 'clamp(146px, 25dvh, 200px)',
+                }}
               >
                 <div
                   data-merge={i + 6}
                   className="body-rect"
                   style={{
-                    width: 150, height: 200, borderRadius: 12,
+                    width: '100%', height: '100%', borderRadius: 12,
                     overflow: 'hidden', position: 'relative',
                     background: isFading ? '#080808' : '#e5e5e5',
                     transition: 'background 0.5s ease',
@@ -238,17 +261,17 @@ export function PicSelectionScreen({ onCreateLikeness, isFading }: PicSelectionS
         </div>
       </div>
 
-      {/* flex: 1 + negative margin centers button between grid bottom and screen bottom */}
+      {/* Create Likeness button — fixed at bottom */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: isFading ? 0 : 1, y: 0 }}
         transition={isFading ? FADE_OUT : { delay: 0.9, duration: FADE_DUR, ease: EASE }}
         style={{
-          flex: 1,
+          flexShrink: 0,
+          padding: '16px 0 32px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          marginTop: -15,
           pointerEvents: isFading ? 'none' as const : 'auto' as const,
         }}
       >

@@ -1,10 +1,21 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useLayoutEffect, useImperativeHandle, forwardRef } from 'react';
 import { motion } from 'framer-motion';
 import { FaceContainer } from './FaceContainer';
+import type { FaceContainerHandle } from './FaceContainer';
+import { calculatePupilPosition } from '../utils/pupilMath';
+
+export interface LoadingScreenHandle {
+  unlockVideos: () => void;
+  /** Freeze face container on clip1, kill wipe loop, disable pointer events */
+  prepareForZoomIn: () => void;
+  /** Zoom back in to the pupil (reverse of zoom-out). Calls onDone when complete. */
+  zoomIn: (onDone: () => void) => void;
+  /** Reset zoom to scale(1) instantly (no transition) */
+  resetZoom: () => void;
+}
 
 interface LoadingScreenProps {
   progress: number;
-  isActive: boolean;
   isZoomedIn: boolean;
   faceActive: boolean;
   avatarReady?: boolean;
@@ -15,14 +26,13 @@ interface LoadingScreenProps {
     zoomDuration: number;
   };
   onZoomComplete: () => void;
-  onDiscoverStyle: () => void;
+  onDiscoverStyle: (e?: React.MouseEvent) => void;
   onExploreLooks: () => void;
   onReveal?: () => void;
 }
 
-export function LoadingScreen({
+export const LoadingScreen = forwardRef<LoadingScreenHandle, LoadingScreenProps>(function LoadingScreen({
   progress,
-  isActive,
   isZoomedIn,
   faceActive,
   avatarReady,
@@ -31,53 +41,60 @@ export function LoadingScreen({
   onDiscoverStyle,
   onExploreLooks,
   onReveal,
-}: LoadingScreenProps) {
+}, ref) {
   const innerRef = useRef<HTMLDivElement>(null);
-  const faceContainerRef = useRef<HTMLDivElement>(null);
-  const hasInitialized = useRef(false);
+  const faceContainerRef = useRef<FaceContainerHandle>(null);
   const hasZoomedOut = useRef(false);
 
-  // Set up initial zoom state once visible — calculate origin from known layout
-  useEffect(() => {
-    if (!isActive || hasInitialized.current) return;
+  useImperativeHandle(ref, () => ({
+    unlockVideos: () => faceContainerRef.current?.unlockVideos(),
+    prepareForZoomIn: () => {
+      faceContainerRef.current?.lockForZoom();
+      const el = innerRef.current;
+      if (el) el.style.pointerEvents = 'none';
+    },
+    zoomIn: (onDone: () => void) => {
+      const el = innerRef.current;
+      if (!el) { onDone(); return; }
+
+      // Recalculate transform origin fresh right before zooming (viewport may have changed)
+      const vpW = el.parentElement?.clientWidth || window.innerWidth;
+      const vpH = el.parentElement?.clientHeight || window.innerHeight;
+      const { originX, originY } = calculatePupilPosition(vpW, vpH, zoomConfig.pupilX, zoomConfig.pupilY);
+      el.style.transformOrigin = `${originX}% ${originY}%`;
+
+      el.style.transition = `transform ${zoomConfig.zoomDuration}ms cubic-bezier(0.7, 0, 0.84, 0)`;
+      el.style.transform = `scale(${zoomConfig.zoomStart})`;
+
+      setTimeout(onDone, zoomConfig.zoomDuration);
+    },
+    resetZoom: () => {
+      const el = innerRef.current;
+      if (!el) return;
+      el.style.transition = 'none';
+      el.style.transform = 'scale(1)';
+      el.style.pointerEvents = '';
+      // Resume face container videos and wipe cycle
+      faceContainerRef.current?.resumeAfterZoom();
+    },
+  }));
+
+  // Apply initial zoom transform synchronously before first paint
+  useLayoutEffect(() => {
     const el = innerRef.current;
     if (!el) return;
 
-    hasInitialized.current = true;
+    const vpW = el.parentElement?.clientWidth || window.innerWidth;
+    const vpH = el.parentElement?.clientHeight || window.innerHeight;
+    const { originX, originY } = calculatePupilPosition(vpW, vpH, zoomConfig.pupilX, zoomConfig.pupilY);
 
-    // The loading screen layout is deterministic:
-    // - Screen is 100vw x 100vh
-    // - Content is centered at 50% horizontal, ~40% vertical (translate -50%, -60%)
-    // - Content has: percentage text (~42px tall) + 28px gap + face container (260x340)
-    // - Pupil is at pupilX/pupilY fraction within the face container
-    const vpW = window.innerWidth;
-    const vpH = window.innerHeight;
-
-    // Content center: 50% horizontal, 40% vertical (50% - 60% of content height offset)
-    // Content height: ~42 + 28 + 340 + 28 + ~50 = ~488px, so center offset is about -60% of that
-    // The face container top edge is at: contentCenterY - contentHeight/2 + percentHeight + gap
-    // Simplified: just calculate where the face container center is
-    const contentCenterX = vpW / 2;
-    // The content is at top:50% with translateY(-60%), so its visual center is at ~40% of viewport
-    const contentTopY = vpH * 0.5 - (488 * 0.6); // approximate content top
-    const faceTopY = contentTopY + 42 + 28; // after percent text + gap
-    const faceCenterX = contentCenterX;
-
-    // Pupil position within viewport
-    const pupilX = faceCenterX - 130 + (260 * zoomConfig.pupilX); // face is 260px wide, centered
-    const pupilY = faceTopY + (340 * zoomConfig.pupilY);
-
-    const originX = (pupilX / vpW) * 100;
-    const originY = (pupilY / vpH) * 100;
-
-    el.style.transition = 'none';
     el.style.transformOrigin = `${originX}% ${originY}%`;
     el.style.transform = `scale(${zoomConfig.zoomStart})`;
-  }, [isActive, zoomConfig]);
+  }, [zoomConfig]);
 
   // Trigger zoom out
   useEffect(() => {
-    if (isZoomedIn || !isActive || hasZoomedOut.current || !hasInitialized.current) return;
+    if (isZoomedIn || hasZoomedOut.current) return;
     const el = innerRef.current;
     if (!el) return;
 
@@ -91,16 +108,13 @@ export function LoadingScreen({
         setTimeout(onZoomComplete, zoomConfig.zoomDuration);
       });
     });
-  }, [isZoomedIn, isActive, zoomConfig.zoomDuration, onZoomComplete]);
+  }, [isZoomedIn, zoomConfig.zoomDuration, onZoomComplete]);
 
   return (
     <div
       ref={innerRef}
       className="absolute inset-0 bg-white"
-      style={{
-        zIndex: 10,
-        visibility: isActive ? 'visible' : 'hidden',
-      }}
+      style={{ zIndex: 10 }}
     >
       {/* Centered content */}
       <div className="loading-content-inner absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[60%] flex flex-col items-center gap-7">
@@ -175,7 +189,7 @@ export function LoadingScreen({
           )}
           <div className="flex gap-3 w-full">
             <motion.button
-              onClick={onDiscoverStyle}
+              onClick={(e) => onDiscoverStyle(e)}
               className="flex-1 h-[52px] rounded-[26px] flex items-center justify-center text-sm font-semibold font-serif cursor-pointer"
               style={{
                 background: avatarReady ? '#fff' : '#1a1a1a',
@@ -200,4 +214,4 @@ export function LoadingScreen({
       </div>
     </div>
   );
-}
+});

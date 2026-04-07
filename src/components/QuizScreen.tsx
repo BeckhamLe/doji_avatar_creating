@@ -11,6 +11,8 @@ interface QuizScreenProps {
   answers: Record<number, string>;
   result: StyleProfile | null;
   isComplete: boolean;
+  /** Skip entrance animation (when entering via blob transition — quiz mounts behind black) */
+  skipEntrance?: boolean;
   onAnswer: (questionId: number, answerId: string) => void;
   onBack: () => void;
   onExit: () => void;
@@ -87,6 +89,7 @@ export function QuizScreen({
   answers,
   result,
   isComplete,
+  skipEntrance,
   onAnswer,
   onBack,
   onExit,
@@ -96,15 +99,16 @@ export function QuizScreen({
   return (
     <motion.div
       className="absolute inset-0 bg-white z-20 flex flex-col"
-      initial={{ y: '100%' }}
+      initial={skipEntrance ? false : { y: '100%' }}
       animate={{ y: 0 }}
       exit={{ y: '100%' }}
-      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+      transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+      style={{ touchAction: 'none' }}
       drag="y"
-      dragConstraints={{ top: 0, bottom: 0 }}
-      dragElastic={0.3}
+      dragConstraints={{ top: 0 }}
+      dragElastic={{ top: 0, bottom: 0.6 }}
       onDragEnd={(_e, info) => {
-        if (info.offset.y > 120 || info.velocity.y > 500) {
+        if (info.offset.y > 80 || info.velocity.y > 300) {
           onExit();
         }
       }}
@@ -147,6 +151,7 @@ export function QuizScreen({
             {Array.from({ length: totalQuestions }).map((_, i) => (
               <div
                 key={i}
+                data-quiz-dot={i === 0 ? 'first' : undefined}
                 style={{
                   width: '8px', height: '8px', borderRadius: '50%',
                   background: i <= currentQuestion ? '#1a1a1a' : '#e0e0e0',
@@ -171,7 +176,7 @@ export function QuizScreen({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.4, ease: EASE }}
+              transition={{ duration: 0.25, ease: EASE }}
             >
               {/* Persona image — full bleed, fades seamlessly into white on all edges */}
               {result.image && (
@@ -188,6 +193,7 @@ export function QuizScreen({
                   <img
                     src={result.image}
                     alt={result.name}
+                    loading="lazy"
                     style={{
                       width: '100%',
                       height: '100%',
@@ -249,10 +255,9 @@ export function QuizScreen({
             <motion.div
               key={question.id}
               style={{ display: 'flex', flexDirection: 'column', flex: 1, paddingTop: '8px', paddingBottom: '24px', minHeight: 0 }}
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -30 }}
-              transition={{ duration: 0.35, ease: EASE }}
+              initial={{ opacity: 0, x: 40, transition: { duration: 0.25, ease: [0.25, 0.1, 0.25, 1] } }}
+              animate={{ opacity: 1, x: 0, transition: { duration: 0.25, ease: [0.25, 0.1, 0.25, 1] } }}
+              exit={{ opacity: 0, x: -40, transition: { duration: 0.12, ease: [0.4, 0, 1, 1] } }}
             >
               {/* Question text */}
               <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '24px', fontWeight: 400, color: '#1a1a1a', textAlign: 'center', marginBottom: '14px', lineHeight: 1.3, flexShrink: 0 }}>

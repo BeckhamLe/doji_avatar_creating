@@ -1,10 +1,21 @@
-import { forwardRef, useEffect, useRef, useCallback } from 'react';
+import { forwardRef, useEffect, useRef, useCallback, useImperativeHandle } from 'react';
+import { easeInOutCubic, setClipPath } from '../utils/animation';
+
+export interface FaceContainerHandle {
+  /** Call during a user gesture (e.g. button tap) to unlock video playback on mobile Safari */
+  unlockVideos: () => void;
+  /** Freeze on clip1 (woman's eye), kill wipe animation, pause videos */
+  lockForZoom: () => void;
+  /** Resume video playback and wipe cycle after transition completes */
+  resumeAfterZoom: () => void;
+}
 
 interface FaceContainerProps {
   isActive: boolean;
 }
 
-export const FaceContainer = forwardRef<HTMLDivElement, FaceContainerProps>(({ isActive }, ref) => {
+export const FaceContainer = forwardRef<FaceContainerHandle, FaceContainerProps>(({ isActive }, ref) => {
+  const containerRef = useRef<HTMLDivElement>(null);
   const video1Ref = useRef<HTMLVideoElement>(null);
   const video2Ref = useRef<HTMLVideoElement>(null);
   const scanBarRef = useRef<HTMLDivElement>(null);
@@ -13,10 +24,7 @@ export const FaceContainer = forwardRef<HTMLDivElement, FaceContainerProps>(({ i
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const directionRef = useRef<'down' | 'up'>('down');
   const activeVideoRef = useRef<1 | 2>(1);
-
-  const easeInOutCubic = useCallback((t: number): number => {
-    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-  }, []);
+  const mountedRef = useRef(true);
 
   const randomCoord = useCallback(() => {
     return `${(Math.random() * 360 - 180).toFixed(1)}°`;
@@ -28,7 +36,58 @@ export const FaceContainer = forwardRef<HTMLDivElement, FaceContainerProps>(({ i
     });
   }, [randomCoord]);
 
+  useImperativeHandle(ref, () => ({
+    unlockVideos: () => {
+      const v1 = video1Ref.current;
+      const v2 = video2Ref.current;
+      if (!v1 || !v2) return;
+      v1.play().then(() => { v1.pause(); v1.currentTime = 0; }).catch(() => {});
+      v2.play().then(() => { v2.pause(); v2.currentTime = 0; }).catch(() => {});
+    },
+    lockForZoom: () => {
+      // Kill wipe animation loop immediately
+      if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
+      if (timeoutRef.current) { clearTimeout(timeoutRef.current); timeoutRef.current = null; }
+
+      const v1 = video1Ref.current;
+      const v2 = video2Ref.current;
+      if (!v1 || !v2) return;
+
+      // Pause FIRST so no more frames advance
+      v1.pause();
+      v2.pause();
+
+      // Rewind clip1 to frame 0 — the woman looking forward, pupil visible and centered
+      v1.currentTime = 0;
+      v2.currentTime = 0;
+
+      // Force clip1 fully visible on bottom, clip2 fully clipped on top
+      setClipPath(v1, 'none');
+      v1.style.zIndex = '0';
+      setClipPath(v2, 'inset(0 0 100% 0)');
+      v2.style.zIndex = '1';
+
+      // Reset active state so next activation starts clean
+      activeVideoRef.current = 1;
+      directionRef.current = 'down';
+    },
+    resumeAfterZoom: () => {
+      const v1 = video1Ref.current;
+      const v2 = video2Ref.current;
+      if (!v1 || !v2) return;
+
+      // Resume playback from where lockForZoom froze it (frame 0)
+      v1.play().catch(() => {});
+      v2.play().catch(() => {});
+
+      // Restart the wipe cycle
+      const firstDelay = 5000 + Math.random() * 5000;
+      timeoutRef.current = setTimeout(performWipe, firstDelay);
+    },
+  }));
+
   const performWipe = useCallback(() => {
+    if (!mountedRef.current) return;
     const video1 = video1Ref.current;
     const video2 = video2Ref.current;
     const scanBar = scanBarRef.current;
@@ -41,7 +100,7 @@ export const FaceContainer = forwardRef<HTMLDivElement, FaceContainerProps>(({ i
     topVideo.style.zIndex = '1';
     bottomVideo.style.zIndex = '0';
     topVideo.currentTime = 0;
-    topVideo.play();
+    topVideo.play().catch(() => {});
 
     const direction = directionRef.current;
     const duration = 7000;
@@ -50,6 +109,7 @@ export const FaceContainer = forwardRef<HTMLDivElement, FaceContainerProps>(({ i
     scanBar.style.opacity = '1';
 
     const animate = (timestamp: number) => {
+      if (!mountedRef.current) return;
       if (!startTime) startTime = timestamp;
       const elapsed = timestamp - startTime;
       const rawProgress = Math.min(elapsed / duration, 1);
@@ -61,12 +121,14 @@ export const FaceContainer = forwardRef<HTMLDivElement, FaceContainerProps>(({ i
 
       scanBar.style.top = `${barTop}px`;
 
-      // Reveal clip via clip-path
+      // Reveal clip via clip-path (with WebKit fallback)
+      let clipValue: string;
       if (direction === 'down') {
-        topVideo.style.clipPath = `inset(0 0 ${(1 - progress) * 100}% 0)`;
+        clipValue = `inset(0 0 ${(1 - progress) * 100}% 0)`;
       } else {
-        topVideo.style.clipPath = `inset(${(1 - progress) * 100}% 0 0 0)`;
+        clipValue = `inset(${(1 - progress) * 100}% 0 0 0)`;
       }
+      setClipPath(topVideo, clipValue);
 
       if (rawProgress < 1) {
         rafRef.current = requestAnimationFrame(animate);
@@ -80,7 +142,7 @@ export const FaceContainer = forwardRef<HTMLDivElement, FaceContainerProps>(({ i
         bottomVideo.currentTime = 0;
 
         // Reset clip path — top video is now fully revealed
-        topVideo.style.clipPath = 'none';
+        setClipPath(topVideo, 'none');
 
         // Swap roles
         activeVideoRef.current = activeVideoRef.current === 1 ? 2 : 1;
@@ -92,14 +154,37 @@ export const FaceContainer = forwardRef<HTMLDivElement, FaceContainerProps>(({ i
         updateGridText();
 
         // Schedule next wipe
-        const nextDelay = 5000 + Math.random() * 5000;
-        timeoutRef.current = setTimeout(performWipe, nextDelay);
+        if (mountedRef.current) {
+          const nextDelay = 5000 + Math.random() * 5000;
+          timeoutRef.current = setTimeout(performWipe, nextDelay);
+        }
       }
     };
 
     rafRef.current = requestAnimationFrame(animate);
-  }, [easeInOutCubic, updateGridText]);
+  }, [updateGridText]);
 
+  // Force-load first frame on mount so the eye is painted before playback starts
+  useEffect(() => {
+    const video1 = video1Ref.current;
+    const video2 = video2Ref.current;
+    if (!video1 || !video2) return;
+
+    // Force the browser to decode the first frame (mobile Safari ignores preload="auto")
+    video1.load();
+    video2.load();
+    const forceFirstFrame = (v: HTMLVideoElement) => {
+      const handler = () => {
+        v.currentTime = 0.001;
+        v.removeEventListener('loadeddata', handler);
+      };
+      v.addEventListener('loadeddata', handler);
+    };
+    forceFirstFrame(video1);
+    forceFirstFrame(video2);
+  }, []);
+
+  // Start playback + wipe cycle only when active (after zoom-out completes)
   useEffect(() => {
     if (!isActive) return;
 
@@ -107,12 +192,12 @@ export const FaceContainer = forwardRef<HTMLDivElement, FaceContainerProps>(({ i
     const video2 = video2Ref.current;
     if (!video1 || !video2) return;
 
-    // Start both videos
-    video1.play();
-    video2.play();
+    // Start both videos (should succeed since unlockVideos was called during user gesture)
+    video1.play().catch(() => {});
+    video2.play().catch(() => {});
 
     // Video 2 starts clipped
-    video2.style.clipPath = 'inset(0 0 100% 0)';
+    setClipPath(video2, 'inset(0 0 100% 0)');
     video2.style.zIndex = '1';
     video1.style.zIndex = '0';
 
@@ -129,9 +214,15 @@ export const FaceContainer = forwardRef<HTMLDivElement, FaceContainerProps>(({ i
     };
   }, [isActive, performWipe, updateGridText]);
 
+  // Cleanup mounted flag
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
+
   return (
     <div
-      ref={ref}
+      ref={containerRef}
       style={{
         width: 260,
         height: 340,
@@ -222,6 +313,7 @@ export const FaceContainer = forwardRef<HTMLDivElement, FaceContainerProps>(({ i
             zIndex: 3,
             top: -10,
             opacity: 0,
+            willChange: 'transform',
             background:
               'linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.15) 20%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0.15) 80%, transparent 100%)',
             boxShadow: '0 0 12px 4px rgba(255,255,255,0.15)',
