@@ -6,12 +6,6 @@ import { calculatePupilPosition } from '../utils/pupilMath';
 
 export interface LoadingScreenHandle {
   unlockVideos: () => void;
-  /** Freeze face container on clip1, kill wipe loop, disable pointer events */
-  prepareForZoomIn: () => void;
-  /** Zoom back in to the pupil (reverse of zoom-out). Calls onDone when complete. */
-  zoomIn: (onDone: () => void) => void;
-  /** Reset zoom to scale(1) instantly (no transition) */
-  resetZoom: () => void;
 }
 
 interface LoadingScreenProps {
@@ -26,7 +20,7 @@ interface LoadingScreenProps {
     zoomDuration: number;
   };
   onZoomComplete: () => void;
-  onDiscoverStyle: (e?: React.MouseEvent) => void;
+  onDiscoverStyle: () => void;
   onExploreLooks: () => void;
   onReveal?: () => void;
 }
@@ -48,35 +42,6 @@ export const LoadingScreen = forwardRef<LoadingScreenHandle, LoadingScreenProps>
 
   useImperativeHandle(ref, () => ({
     unlockVideos: () => faceContainerRef.current?.unlockVideos(),
-    prepareForZoomIn: () => {
-      faceContainerRef.current?.lockForZoom();
-      const el = innerRef.current;
-      if (el) el.style.pointerEvents = 'none';
-    },
-    zoomIn: (onDone: () => void) => {
-      const el = innerRef.current;
-      if (!el) { onDone(); return; }
-
-      // Recalculate transform origin fresh right before zooming (viewport may have changed)
-      const vpW = el.parentElement?.clientWidth || window.innerWidth;
-      const vpH = el.parentElement?.clientHeight || window.innerHeight;
-      const { originX, originY } = calculatePupilPosition(vpW, vpH, zoomConfig.pupilX, zoomConfig.pupilY);
-      el.style.transformOrigin = `${originX}% ${originY}%`;
-
-      el.style.transition = `transform ${zoomConfig.zoomDuration}ms cubic-bezier(0.7, 0, 0.84, 0)`;
-      el.style.transform = `scale(${zoomConfig.zoomStart})`;
-
-      setTimeout(onDone, zoomConfig.zoomDuration);
-    },
-    resetZoom: () => {
-      const el = innerRef.current;
-      if (!el) return;
-      el.style.transition = 'none';
-      el.style.transform = 'scale(1)';
-      el.style.pointerEvents = '';
-      // Resume face container videos and wipe cycle
-      faceContainerRef.current?.resumeAfterZoom();
-    },
   }));
 
   // Apply initial zoom transform synchronously before first paint
@@ -189,7 +154,7 @@ export const LoadingScreen = forwardRef<LoadingScreenHandle, LoadingScreenProps>
           )}
           <div className="flex gap-3 w-full">
             <motion.button
-              onClick={(e) => onDiscoverStyle(e)}
+              onClick={onDiscoverStyle}
               className="flex-1 h-[52px] rounded-[26px] flex items-center justify-center text-sm font-semibold font-serif cursor-pointer"
               style={{
                 background: avatarReady ? '#fff' : '#1a1a1a',

@@ -6,12 +6,7 @@ import { MergeTransition } from './components/MergeTransition';
 import type { ShapeSnapshot } from './components/MergeTransition';
 import { LoadingScreen } from './components/LoadingScreen';
 import type { LoadingScreenHandle } from './components/LoadingScreen';
-import { BlobTransition } from './components/BlobTransition';
-import type { BlobRect } from './components/BlobTransition';
-import { calculatePupilPosition } from './utils/pupilMath';
-// Preload quiz chunk so it's ready before blob transition needs it
-const quizImport = import('./components/QuizScreen');
-const QuizScreen = lazy(() => quizImport.then(m => ({ default: m.QuizScreen })));
+const QuizScreen = lazy(() => import('./components/QuizScreen').then(m => ({ default: m.QuizScreen })));
 const ExplorationScreen = lazy(() => import('./components/ExplorationScreen').then(m => ({ default: m.ExplorationScreen })));
 const RevealScreen = lazy(() => import('./components/RevealScreen').then(m => ({ default: m.RevealScreen })));
 const ProfileScreen = lazy(() => import('./components/ProfileScreen').then(m => ({ default: m.ProfileScreen })));
@@ -29,13 +24,6 @@ const ZOOM_CONFIG = {
   zoomDuration: 800,
 };
 
-// Separate config for where the blob emerges in the loading → quiz transition.
-// Adjust these to position the blob's starting point on the pupil.
-const BLOB_PUPIL = {
-  pupilX: 0.5,
-  pupilY: 0.63,
-};
-
 function App() {
   const [activeScreen, setActiveScreen] = useState<Screen>('pic-selection');
   const [loadingZoomedIn, setLoadingZoomedIn] = useState(true);
@@ -46,11 +34,6 @@ function App() {
   const [shapeSnapshots, setShapeSnapshots] = useState<ShapeSnapshot[]>([]);
   const [showCompletionPopup, setShowCompletionPopup] = useState(false);
   const [avatarReady, setAvatarReady] = useState(false);
-  const [showBlobTransition, setShowBlobTransition] = useState(false);
-  const [blobSource, setBlobSource] = useState<BlobRect | null>(null);
-  const [blobDestScreen, setBlobDestScreen] = useState<Screen | null>(null);
-  const [blobTargetSelector, setBlobTargetSelector] = useState<string | null>(null);
-  const [isTransitioning, setIsTransitioning] = useState(false);
   const loadingScreenRef = useRef<LoadingScreenHandle>(null);
   const { progress, isComplete, startProgress } = useAvatarProgress();
   const quiz = useQuizState();
@@ -99,29 +82,21 @@ function App() {
     });
 
     setShapeSnapshots(snapshots);
-
-    // Fade the pic selection UI (text, buttons, badges) AND fade shape images to black
     setPicSelectionFading(true);
-
-    // Show merge layer on top (but PicSelectionScreen stays visible underneath during fade)
     setShowMerge(true);
     setActiveScreen('merging');
   }, []);
 
   const handleShapesClonesReady = useCallback(() => {
-    // Merge clones are in position on top — safe to hide PicSelectionScreen now
     setShowPicSelection(false);
     setPicSelectionFading(false);
   }, []);
 
   const handleBlackScreenReady = useCallback(() => {
-    // Screen is fully black. Loading screen is already rendered behind (z-10).
-    // Ensure zoomed-in state is set (it's the default, but be explicit).
     setLoadingZoomedIn(true);
   }, []);
 
   const handleIrisComplete = useCallback(() => {
-    // Iris retraction done — loading screen is revealed. Start zoom out.
     setShowMerge(false);
     setActiveScreen('loading');
     setLoadingZoomedIn(false);
@@ -132,67 +107,8 @@ function App() {
     startProgress();
   }, [startProgress]);
 
-  const getPupilRect = useCallback((): BlobRect => {
-    const phoneEl = document.querySelector('.phone-shell');
-    if (!phoneEl) return { left: 0, top: 0, width: 12, height: 12 };
-    const { x, y } = calculatePupilPosition(phoneEl.clientWidth, phoneEl.clientHeight, BLOB_PUPIL.pupilX, BLOB_PUPIL.pupilY);
-    return { left: x - 6, top: y - 6, width: 12, height: 12 };
-  }, []);
-
-  // Start the full transition: zoom-in → blob from pupil → retract to target
-  const startBlobTransition = useCallback((_e: React.MouseEvent, destScreen: Screen, targetSelector: string) => {
-    if (isTransitioning) return;
-    setIsTransitioning(true);
-
-    setBlobDestScreen(destScreen);
-    setBlobTargetSelector(targetSelector);
-
-    loadingScreenRef.current?.prepareForZoomIn();
-
-    // Phase 1: Zoom in on the loading screen toward the pupil
-    loadingScreenRef.current?.zoomIn(() => {
-      // Hold on the zoomed-in eye so the user sees the pupil before black emerges
-      setTimeout(() => {
-        // Phase 2: Now start the blob transition from the pupil
-        setBlobSource(getPupilRect());
-        setShowBlobTransition(true);
-      }, 300);
-    });
-  }, [getPupilRect, isTransitioning]);
-
-  const handleBlobBlackScreen = useCallback(() => {
-    if (blobDestScreen) {
-      setActiveScreen(blobDestScreen);
-    }
-  }, [blobDestScreen]);
-
-  const measureBlobTarget = useCallback((): BlobRect | null => {
-    if (!blobTargetSelector) return null;
-    const targetEl = document.querySelector(blobTargetSelector);
-    const phoneEl = document.querySelector('.phone-shell');
-    if (!targetEl || !phoneEl) return null;
-    const phoneRect = phoneEl.getBoundingClientRect();
-    const tgtRect = targetEl.getBoundingClientRect();
-    return {
-      left: tgtRect.left - phoneRect.left,
-      top: tgtRect.top - phoneRect.top,
-      width: tgtRect.width,
-      height: tgtRect.height,
-    };
-  }, [blobTargetSelector]);
-
-  const handleBlobComplete = useCallback(() => {
-    setShowBlobTransition(false);
-    setBlobSource(null);
-    setBlobDestScreen(null);
-    setBlobTargetSelector(null);
-    setIsTransitioning(false);
-    loadingScreenRef.current?.resetZoom();
-  }, []);
-
   return (
     <PhoneShell>
-      {/* Loading screen — base layer, only visible after black screen covers everything */}
       <LoadingScreen
         ref={loadingScreenRef}
         progress={progress}
@@ -201,18 +117,11 @@ function App() {
         avatarReady={avatarReady}
         zoomConfig={ZOOM_CONFIG}
         onZoomComplete={handleZoomComplete}
-        onDiscoverStyle={(e?: React.MouseEvent) => {
-          if (e) {
-            startBlobTransition(e, 'quiz', '[data-quiz-dot="first"]');
-          } else {
-            setActiveScreen('quiz');
-          }
-        }}
+        onDiscoverStyle={() => setActiveScreen('quiz')}
         onExploreLooks={() => setActiveScreen('exploration')}
         onReveal={() => setActiveScreen('reveal')}
       />
 
-      {/* Merge transition — renders its own white bg, merge shapes, and iris */}
       {showMerge && (
         <MergeTransition
           shapes={shapeSnapshots}
@@ -222,17 +131,6 @@ function App() {
         />
       )}
 
-      {/* Blob transition — for button-to-screen transitions */}
-      {showBlobTransition && blobSource && !showMerge && (
-        <BlobTransition
-          pupilRect={blobSource}
-          measureTarget={measureBlobTarget}
-          onBlackScreen={handleBlobBlackScreen}
-          onComplete={handleBlobComplete}
-        />
-      )}
-
-      {/* Pic selection — stays mounted during merge (merge layer covers it) */}
       {showPicSelection && (
         <PicSelectionScreen
           onCreateLikeness={handleCreateLikeness}
@@ -240,13 +138,11 @@ function App() {
         />
       )}
 
-      {/* Other overlay screens */}
       <AnimatePresence>
         {activeScreen === 'quiz' && (
           <Suspense key="quiz-suspense" fallback={null}>
           <QuizScreen
             key="quiz"
-            skipEntrance={showBlobTransition}
             currentQuestion={quiz.currentQuestion}
             totalQuestions={quiz.totalQuestions}
             question={quiz.question}
@@ -299,7 +195,6 @@ function App() {
         )}
       </AnimatePresence>
 
-      {/* Completion popup — shown when avatar finishes while user is on quiz/explore */}
       <AnimatePresence>
         {showCompletionPopup && (
           <motion.div

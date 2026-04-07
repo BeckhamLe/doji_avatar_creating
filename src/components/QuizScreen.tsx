@@ -11,8 +11,6 @@ interface QuizScreenProps {
   answers: Record<number, string>;
   result: StyleProfile | null;
   isComplete: boolean;
-  /** Skip entrance animation (when entering via blob transition — quiz mounts behind black) */
-  skipEntrance?: boolean;
   onAnswer: (questionId: number, answerId: string) => void;
   onBack: () => void;
   onExit: () => void;
@@ -89,7 +87,6 @@ export function QuizScreen({
   answers,
   result,
   isComplete,
-  skipEntrance,
   onAnswer,
   onBack,
   onExit,
@@ -99,7 +96,7 @@ export function QuizScreen({
   return (
     <motion.div
       className="absolute inset-0 bg-white z-20 flex flex-col"
-      initial={skipEntrance ? false : { y: '100%' }}
+      initial={{ y: '100%' }}
       animate={{ y: 0 }}
       exit={{ y: '100%' }}
       transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
@@ -151,7 +148,6 @@ export function QuizScreen({
             {Array.from({ length: totalQuestions }).map((_, i) => (
               <div
                 key={i}
-                data-quiz-dot={i === 0 ? 'first' : undefined}
                 style={{
                   width: '8px', height: '8px', borderRadius: '50%',
                   background: i <= currentQuestion ? '#1a1a1a' : '#e0e0e0',

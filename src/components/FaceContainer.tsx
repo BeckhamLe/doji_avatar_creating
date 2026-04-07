@@ -2,12 +2,7 @@ import { forwardRef, useEffect, useRef, useCallback, useImperativeHandle } from 
 import { easeInOutCubic, setClipPath } from '../utils/animation';
 
 export interface FaceContainerHandle {
-  /** Call during a user gesture (e.g. button tap) to unlock video playback on mobile Safari */
   unlockVideos: () => void;
-  /** Freeze on clip1 (woman's eye), kill wipe animation, pause videos */
-  lockForZoom: () => void;
-  /** Resume video playback and wipe cycle after transition completes */
-  resumeAfterZoom: () => void;
 }
 
 interface FaceContainerProps {
@@ -43,46 +38,6 @@ export const FaceContainer = forwardRef<FaceContainerHandle, FaceContainerProps>
       if (!v1 || !v2) return;
       v1.play().then(() => { v1.pause(); v1.currentTime = 0; }).catch(() => {});
       v2.play().then(() => { v2.pause(); v2.currentTime = 0; }).catch(() => {});
-    },
-    lockForZoom: () => {
-      // Kill wipe animation loop immediately
-      if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
-      if (timeoutRef.current) { clearTimeout(timeoutRef.current); timeoutRef.current = null; }
-
-      const v1 = video1Ref.current;
-      const v2 = video2Ref.current;
-      if (!v1 || !v2) return;
-
-      // Pause FIRST so no more frames advance
-      v1.pause();
-      v2.pause();
-
-      // Rewind clip1 to frame 0 — the woman looking forward, pupil visible and centered
-      v1.currentTime = 0;
-      v2.currentTime = 0;
-
-      // Force clip1 fully visible on bottom, clip2 fully clipped on top
-      setClipPath(v1, 'none');
-      v1.style.zIndex = '0';
-      setClipPath(v2, 'inset(0 0 100% 0)');
-      v2.style.zIndex = '1';
-
-      // Reset active state so next activation starts clean
-      activeVideoRef.current = 1;
-      directionRef.current = 'down';
-    },
-    resumeAfterZoom: () => {
-      const v1 = video1Ref.current;
-      const v2 = video2Ref.current;
-      if (!v1 || !v2) return;
-
-      // Resume playback from where lockForZoom froze it (frame 0)
-      v1.play().catch(() => {});
-      v2.play().catch(() => {});
-
-      // Restart the wipe cycle
-      const firstDelay = 5000 + Math.random() * 5000;
-      timeoutRef.current = setTimeout(performWipe, firstDelay);
     },
   }));
 
